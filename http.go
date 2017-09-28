@@ -182,14 +182,22 @@ func (c *Client) magicRequestDecoder(method, path string, body io.Reader, v inte
 	return err
 }
 
-// NewRequest returns a signed request  suitable for the chef server
-func (c *Client) NewRequest(method string, requestUrl string, body io.Reader) (*http.Request, error) {
-	relativeUrl, err := url.Parse(requestUrl)
+func (c *Client) BuildURL(requestUrl string) (*url.URL, error) {
+	_, err := url.Parse(requestUrl)
 	if err != nil {
 		return nil, err
 	}
-	u := c.BaseURL.ResolveReference(relativeUrl)
+	fullUrl := c.BaseURL
+	fullUrl.Path = path.Join(fullUrl.Path, requestUrl)
+	return fullUrl, nil
+}
 
+// NewRequest returns a signed request suitable for the chef server
+func (c *Client) NewRequest(method string, requestUrl string, body io.Reader) (*http.Request, error) {
+	u, err := c.BuildURL(requestUrl)
+	if err != nil {
+		return nil, err
+	}
 	// NewRequest uses a new value object of body
 	req, err := http.NewRequest(method, u.String(), body)
 	if err != nil {

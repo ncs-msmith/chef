@@ -522,6 +522,18 @@ func TestNewClient(t *testing.T) {
 	}
 }
 
+func TestBuildURL(t *testing.T) {
+	testUrl := server.URL + "/organizations/myorg"
+	cfg := &Config{Name: userid, BaseURL: testUrl, Key: privateKey, SkipSSL: false}
+	c, _ := NewClient(cfg)
+
+	requesturl, _ := c.BuildURL("mymethod/foo/bar?blah=4sure")
+
+	if requesturl.Path != "/organizations/myorg/mymethod/foo/bar?blah=4sure" {
+		t.Error("Request URL build was invalid:", requesturl.String())
+	}
+}
+
 func TestNewRequest(t *testing.T) {
 	var err error
 	server := createServer()
